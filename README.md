@@ -1,7 +1,7 @@
 wavplayer
 =========
 
-Simple wav file player using libsndfile and portaudio.  The wavplayer will
+Simple wav file player using [libsndfile](http://www.mega-nerd.com/libsndfile) and [portaudio](http://www.portaudio.com).  The wavplayer will
 take a wav file on the command line, open it with libsndfile and on every
 callback from portaudio read NUM_FRAMES_PER_BUFFER for the left and right
 channels, and output them on the portaudio stream.  
