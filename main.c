@@ -33,6 +33,7 @@ int main(int argc, const char * argv[])
 {
     /* SNDFILE variables */
     SF_INFO info;
+    SNDFILE *s;
     FILE *f;
     
     /* PortAudio variables */
@@ -58,7 +59,7 @@ int main(int argc, const char * argv[])
         return -1;
     }
     
-    SNDFILE *s = sf_open(argv[1], SFM_READ, &info);
+    s = sf_open(argv[1], SFM_READ, &info);
     
     if (sf_error(s) != SF_ERR_NO_ERROR)
     {
