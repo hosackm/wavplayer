@@ -22,6 +22,15 @@ A wav file shall be passed through the command line.  For example:
 ```
 
 ###Limitations
+
 * The wav file is stereo
 * The file must be in wav format
 * The wavplayer will play only one file and then exit
+
+###To Do / Requests
+
+* Playlist for opening multiple files
+* UI for opening files and play / pause
+* Buffering for samples instead of reading with sf_read_float() in real-time
+* Equalization filters
+* Other formats

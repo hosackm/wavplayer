@@ -68,12 +68,12 @@ int main(int argc, const char * argv[])
         return -1;
     }
 
-    /* Initialize our Portaudio data struct */
-    data.s = s;
-    data.eof = 0;
 /***************************************************************
 ************************* INIT PORTAUDIO ***********************
 ****************************************************************/
+    data.s = s;
+    data.eof = 0;
+    
     error = Pa_Initialize();
     if(error != paNoError)
     {
