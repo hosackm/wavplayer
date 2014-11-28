@@ -22,6 +22,6 @@ A wav file shall be passed through the command line.  For example:
 ```
 
 ###Limitations
-*The wav file is stereo
-*The file must be in wav format
-*The wavplayer will play only one file and then exit
+* The wav file is stereo
+* The file must be in wav format
+* The wavplayer will play only one file and then exit
