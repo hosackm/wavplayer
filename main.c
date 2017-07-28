@@ -36,7 +36,7 @@ int main(int argc, const char * argv[])
     /* Check cli arguments */
     if(argc < 2)
     {
-        printf("Must pass file to play\n");
+        fprintf(stderr, "Must pass file to play\n");
         return 1;
     }
         
@@ -44,8 +44,8 @@ int main(int argc, const char * argv[])
     data.file = sf_open(argv[1], SFM_READ, &data.info);
     if (sf_error(file) != SF_ERR_NO_ERROR)
     {
-        printf("%s\n", sf_strerror(file));
-        printf("File: %s\n", argv[1]);
+        fprintf(stderr, "%s\n", sf_strerror(file));
+        fprintf(stderr, "File: %s\n", argv[1]);
         return 1;
     }
     
@@ -53,7 +53,8 @@ int main(int argc, const char * argv[])
     error = Pa_Initialize();
     if(error != paNoError)
     {
-        printf("Problem initializing\n");
+        fprintf(stderr, "Problem initializing\n");
+        return 1;
     }
     
     /* Open PaStream with values read from the file */
@@ -67,14 +68,16 @@ int main(int argc, const char * argv[])
                                  ,&data);        /* our sndfile data struct */
     if(error != paNoError)
     {
-        printf("Problem opening Default Stream\n");
+        fprintf(stderr, "Problem opening Default Stream\n");
+        return 1;
     }
     
     /* Start the stream */
     error = Pa_StartStream(stream);
     if(error != paNoError)
     {
-        printf("Problem opening starting Stream\n");
+        fprintf(stderr, "Problem opening starting Stream\n");
+        return 1;
     }
 
     /* Run until EOF is reached */
@@ -90,13 +93,15 @@ int main(int argc, const char * argv[])
     error = Pa_CloseStream(stream);
     if(error != paNoError)
     {
-        printf("Problem closing stream\n");
+        fprintf(stderr, "Problem closing stream\n");
+        return 1;
     }
     
     error = Pa_Terminate();
     if(error != paNoError)
     {
-        printf("Problem terminating\n");
+        fprintf(stderr, "Problem terminating\n");
+        return 1;
     }
     
     return 0;
