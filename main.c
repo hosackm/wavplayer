@@ -12,16 +12,13 @@
 #include "sndfile.h"
 #include "portaudio.h"
 
-#define SAMPLE_RATE         (44100)
 #define FRAMES_PER_BUFFER   (512)
-#define NUM_CHANNELS        (2)
 
 typedef struct
 {
-    SNDFILE *s;
-    unsigned int eof;
-    float buffer[FRAMES_PER_BUFFER * NUM_CHANNELS];
-} data_s;
+    SNDFILE     *file;
+    SF_INFO      info;
+} callback_data_s;
 
 static int callback(    const void *input, void *output,
                         unsigned long frameCount,
@@ -31,83 +28,65 @@ static int callback(    const void *input, void *output,
 
 int main(int argc, const char * argv[])
 {
-    /* SNDFILE variables */
-    SF_INFO info;
-    SNDFILE *s;
-    FILE *f;
-    
-    /* PortAudio variables */
-    data_s data;
+    SNDFILE *file;
     PaStream *stream;
     PaError error;
-/***************************************************************
-************************* INIT SNDFILE *************************
-***************************************************************/
-    info.channels = NUM_CHANNELS;
-    info.samplerate = SAMPLE_RATE;
-    info.format = SF_FORMAT_WAV;
-    
+    callback_data_s data;
+
+    /* Check cli arguments */
     if(argc < 2)
     {
-        printf("Must pass command line argument\n");
-        return 0;
+        printf("Must pass file to play\n");
+        return 1;
     }
-    
-    if(sf_format_check(&info) < 0)
+        
+    /* Open the soundfile */
+    data.file = sf_open(argv[1], SFM_READ, &data.info);
+    if (sf_error(file) != SF_ERR_NO_ERROR)
     {
-        printf("Error with your sf_info structure\n");
-        return -1;
-    }
-    
-    s = sf_open(argv[1], SFM_READ, &info);
-    
-    if (sf_error(s) != SF_ERR_NO_ERROR)
-    {
-        printf("%s\n",sf_strerror(s));
+        printf("%s\n", sf_strerror(file));
         printf("File: %s\n", argv[1]);
-        return -1;
+        return 1;
     }
-
-/***************************************************************
-************************* INIT PORTAUDIO ***********************
-****************************************************************/
-    data.s = s;
-    data.eof = 0;
     
+    /* init portaudio */
     error = Pa_Initialize();
     if(error != paNoError)
     {
         printf("Problem initializing\n");
     }
     
+    /* Open PaStream with values read from the file */
     error = Pa_OpenDefaultStream(&stream
                                  ,0                     /* no input */
-                                 ,NUM_CHANNELS          /* stereo out */
+                                 ,data.info.channels         /* stereo out */
                                  ,paFloat32             /* floating point */
-                                 ,44100.
+                                 ,data.info.samplerate
                                  ,FRAMES_PER_BUFFER
                                  ,callback
-                                 ,(void*)&data);        /* our sndfile data struct */
+                                 ,&data);        /* our sndfile data struct */
     if(error != paNoError)
     {
         printf("Problem opening Default Stream\n");
     }
     
+    /* Start the stream */
     error = Pa_StartStream(stream);
     if(error != paNoError)
     {
         printf("Problem opening starting Stream\n");
     }
-/***************************************************************
-************************ SLEEP / PROCESS ***********************
-***************************************************************/
-    while(!data.eof)
+
+    /* Run until EOF is reached */
+    while(Pa_IsStreamActive(stream))
     {
         Pa_Sleep(100);
     }
-/***************************************************************
-*************************** CLOSE UP ***************************
-***************************************************************/
+
+    /* Close the soundfile */
+    sf_close(file);
+
+    /*  Shut down portaudio */
     error = Pa_CloseStream(stream);
     if(error != paNoError)
     {
@@ -120,46 +99,38 @@ int main(int argc, const char * argv[])
         printf("Problem terminating\n");
     }
     
-    fclose(f);
-    sf_close(s);
-    
     return 0;
 }
 
-static int callback(    const void *input
-                        ,void *output
-                        ,unsigned long frameCount
-                        ,const PaStreamCallbackTimeInfo* timeInfo
-                        ,PaStreamCallbackFlags statusFlags
-                        ,void *userData )
+static
+int
+callback
+    (const void                     *input
+    ,void                           *output
+    ,unsigned long                   frameCount
+    ,const PaStreamCallbackTimeInfo *timeInfo
+    ,PaStreamCallbackFlags           statusFlags
+    ,void                           *userData
+    )
 {
-    unsigned int i;
-    sf_count_t num_read;
-    float *out = (float*)output;
-    data_s *data = (data_s*)userData;
+    float           *out;
+    callback_data_s *p_data = (callback_data_s*)userData;
+    sf_count_t       num_read;
+
+    out = (float*)output;
+    p_data = (callback_data_s*)userData;
+
+    /* clear output buffer */
+    memset(out, 0, sizeof(float) * frameCount * p_data->info.channels);
+
+    /* read directly into output buffer */
+    num_read = sf_read_float(p_data->file, out, frameCount * p_data->info.channels);
     
-    num_read = sf_read_float(data->s, &data->buffer[0], frameCount * NUM_CHANNELS);
-    /* Write the samples we read from the file */
-    for(i = 0; i < num_read; ++i)
+    /*  If we couldn't read a full frameCount of samples we've reached EOF */
+    if (num_read < frameCount)
     {
-        *out++ = data->buffer[2 * i];
-        *out++ = data->buffer[2 * i + 1];
+        return paComplete;
     }
     
-    /*  We've reached the end of the file since we
-    *   couldn't read as many samples as we wanted to
-    */
-    if (num_read < frameCount) {
-        for(i = 0; i < frameCount - num_read; ++i)
-        {
-            *out++ = 0.0f;
-            *out++ = 0.0f;
-        }
-        data->eof = 1;
-    }
-    
-    /* Clear out the buffer for the next time around */
-    memset(data->buffer, 0.0, sizeof(float) * 2 * FRAMES_PER_BUFFER);
-    
-    return paNoError;
+    return paContinue;
 }
