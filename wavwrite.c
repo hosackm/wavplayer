@@ -2,27 +2,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "portaudio.h"
+#include "wavhdr.h"
 
 #define SAMPLE_RATE             (48000)
 #define NUM_SAMPLES_PER_FRAME   (512)
 #define NUM_CHANNELS            (1)
-
-// header described in: http://soundfile.sapp.org/doc/WaveFormat/
-typedef struct wav_header {
-    char  ChunkID[4];     // "RIFF"
-    int   ChunkSize;
-    char  Format[4];      // "WAVE"
-    char  Subchunk1ID[4]; // "fmt 
-    int   Subchunk1Size;  // 16 if PCM
-    short AudioFormat;    // PCM = 1, IEE Float = 3, 
-    short NumChannels;
-    int   SampleRate;
-    int   ByteRate;       // nchans * samplerate * bytes-per-sample
-    short BlockAlign;     // nchans * bytes-per-sample
-    short BitsPerSample;
-    char  Subchunk2ID[4]; // "data"
-    int   Subchunk2Size;  // num bytes from here to EOF
-} wav_header_s;
 
 int callback
     (const void                         *input
@@ -176,9 +160,6 @@ void write_wav_header(FILE *fp)
     header.Subchunk2ID[1] = 'a';
     header.Subchunk2ID[2] = 't';
     header.Subchunk2ID[3] = 'a';
-
-    // Subchunk2Size;  // num bytes from here to EOF
-    header.Subchunk2Size = 0;
 
     fwrite(&header, sizeof(wav_header_s), 1, fp);
 }
