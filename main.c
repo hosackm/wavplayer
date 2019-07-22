@@ -42,9 +42,9 @@ int main(int argc, const char * argv[])
         
     /* Open the soundfile */
     data.file = sf_open(argv[1], SFM_READ, &data.info);
-    if (sf_error(file) != SF_ERR_NO_ERROR)
+    if (sf_error(data.file) != SF_ERR_NO_ERROR)
     {
-        fprintf(stderr, "%s\n", sf_strerror(file));
+        fprintf(stderr, "%s\n", sf_strerror(data.file));
         fprintf(stderr, "File: %s\n", argv[1]);
         return 1;
     }
@@ -87,7 +87,7 @@ int main(int argc, const char * argv[])
     }
 
     /* Close the soundfile */
-    sf_close(file);
+    sf_close(data.file);
 
     /*  Shut down portaudio */
     error = Pa_CloseStream(stream);
