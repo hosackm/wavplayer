@@ -9,15 +9,15 @@ target_link_libraries(wavread sndfile)
 target_include_directories(wavread PUBLIC sndfile)
 target_include_directories(wavread PUBLIC src)
 
-# Needs portaudio
 # add and configure wavwrite target
+# needs portaudio
 add_executable(wavwrite src/wavwrite.c src/wavhdr.c)
 target_link_libraries(wavwrite sndfile)
 target_include_directories(wavwrite PUBLIC sndfile)
 target_include_directories(wavwrite PUBLIC src)
 
-# Needs portaudio
 # add and configure wavplay target
+# needs portaudio
 add_executable(wavplay src/wavplay.c src/wavhdr.c)
 target_link_libraries(wavplay sndfile)
 target_include_directories(wavplay PUBLIC sndfile)
