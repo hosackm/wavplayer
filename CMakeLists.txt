@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 project(wavtools)
 
+set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "No flac, opus, or vorbis for libsndfile")
+set(PA_USE_JACK OFF CACHE BOOL "Don't use JACK with portaudio")
+
 add_subdirectory(vendor/libsndfile)
 add_subdirectory(vendor/portaudio)
 
